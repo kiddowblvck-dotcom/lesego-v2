@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L T S HOLDINGS</title>
+  <style>
+    :root {
+      --navy: #071a2d;
+      --blue: #0d5ea6;
+      --light: #f5f7fa;
+      --panel: #ffffff;
+      --text: #1f2a37;
+      --muted: #667085;
+      --success: #147d3b;
+      --warning: #b45309;
+      --border: #dbe3ef;
+      --shadow: 0 18px 45px rgba(7, 26, 45, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #edf3fa, #f8fafc);
+      color: var(--text);
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, textarea { font: inherit; }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 7%; background: rgba(7, 26, 45, 0.96); color: white;
+      backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .brand { font-size: 1.35rem; font-weight: 800; letter-spacing: .04em; }
+    .brand span { color: #66b3ff; }
+    .topbar nav { display: flex; gap: 24px; align-items: center; }
+    .nav-link { color: #d9e7f8; font-size: .95rem; }
+    .nav-link:hover { color: white; }
+    .nav-toggle { display: none; }
+    .btn {
+      border: none; border-radius: 10px; padding: 11px 18px; font-weight: 700; cursor: pointer;
+      transition: transform .18s, box-shadow .18s; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { background: var(--blue); color: white; box-shadow: 0 10px 20px rgba(13,94,166,.25); }
+    .btn-light { background: white; color: var(--navy); }
+    .btn-danger { background: #b42318; color: white; }
+    .btn-admin { background: #147d3b; color: white; }
+
+    .hero {
+      min-height: 560px; display: grid; grid-template-columns: 1.1fr .9fr; align-items: center;
+      padding: 80px 7% 60px; background: radial-gradient(circle at top left, rgba(19,124,214,.18), transparent 38%), var(--navy);
+      color: white;
+    }
+    .hero h1 { font-size: clamp(2.8rem, 6vw, 5.2rem); line-height: 1; margin: 0 0 25px; letter-spacing: -.06em; }
+    .hero h1 span { color: #6bb6ff; }
+    .hero p { max-width: 650px; font-size: 1.1rem; line-height: 1.8; color: #cedaf0; }
+    .hero-actions { display: flex; gap: 15px; margin-top: 30px; flex-wrap: wrap; }
+    .hero-card {
+      justify-self: center; width: min(100%, 430px); background: rgba(255,255,255,.08); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 28px; padding: 28px; box-shadow: var(--shadow);
+    }
+    .hero-card h2 { margin-top: 0; }
+    .stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 20px; }
+    .stat { background: rgba(255,255,255,.06); padding: 18px; border-radius: 14px; }
+    .stat strong { display: block; font-size: 1.5rem; }
+    .stat small { color: #bfd0eb; }
+
+    section { padding: 80px 7%; }
+    .section-title { font-size: clamp(2rem,4vw,3rem); margin-bottom: 10px; }
+    .section-text { color: var(--muted); max-width: 700px; line-height: 1.8; margin-bottom: 35px; }
+    .about-grid, .services-grid, .contact-grid { display: grid; gap: 25px; }
+    .about-grid { grid-template-columns: 1.1fr .9fr; align-items: center; }
+    .about-copy { font-size: 1.04rem; line-height: 1.9; color: #475467; }
+    .info-card { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 28px; box-shadow: 0 12px 28px rgba(23,40,62,.06); }
+    .info-card h3 { margin-top: 0; }
+    .services-grid { grid-template-columns: repeat(3,1fr); }
+    .service { position: relative; overflow: hidden; background: var(--panel); border: 1px solid var(--border); border-radius: 20px; padding: 30px; box-shadow: 0 10px 24px rgba(7,26,45,.05); }
+    .service::before { content: ""; position: absolute; inset: 0 auto auto 0; width: 100%; height: 4px; background: var(--blue); }
+    .service-icon { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 14px; background: #eaf4ff; color: var(--blue); font-size: 1.5rem; }
+
+    .contact-grid { grid-template-columns: 1fr 1.1fr; }
+    .contact-details div { margin-bottom: 18px; }
+    .contact-details strong { display: block; margin-bottom: 6px; }
+    .contact-form { display: grid; gap: 12px; }
+    .field { display: grid; gap: 7px; }
+    label { font-weight: 700; }
+    input, textarea, select {
+      width: 100%; padding: 13px 14px; border: 1px solid var(--border); border-radius: 10px; background: white; color: var(--text);
+    }
+    textarea { min-height: 110px; resize: vertical; }
+
+    .login-screen, .app-screen { display: none; }
+    .login-screen.active, .app-screen.active { display: block; }
+    .auth-wrap {
+      min-height: 100vh; display: grid; place-items: center; padding: 30px 20px; background: linear-gradient(135deg, #071a2d, #0d5ea6);
+    }
+    .auth-card {
+      width: min(100%, 440px); background: rgba(255,255,255,.97); border-radius: 24px; padding: 35px; box-shadow: 0 25px 60px rgba(0,0,0,.28);
+    }
+    .auth-badge { color: var(--blue); background: #eaf4ff; padding: 8px 12px; border-radius: 999px; font-size: .78rem; font-weight: 800; letter-spacing: .06em; }
+    .auth-card h2 { margin: 18px 0 8px; }
+    .auth-card p { color: var(--muted); }
+    .auth-form { display: grid; gap: 15px; margin-top: 25px; }
+    .remember { display: flex; justify-content: space-between; align-items: center; gap: 10px; color: var(--muted); font-size: .92rem; }
+    .message { min-height: 24px; font-size: .93rem; font-weight: 700; }
+    .message.error { color: #b42318; }
+    .message.success { color: var(--success); }
+
+    .workspace {
+      min-height: 100vh; background: #f2f6fb; color: var(--text);
+    }
+    .workspace-header {
+      display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 18px 5%;
+      background: var(--navy); color: white; position: sticky; top: 0; z-index: 30;
+    }
+    .account { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: #66b3ff; color: var(--navy); font-weight: 800; }
+    .workspace-body { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 75px); }
+    .sidebar { background: #eaf0f8; border-right: 1px solid var(--border); padding: 25px 18px; }
+    .sidebar h3 { margin-top: 0; color: var(--navy); }
+    .menu-button { width: 100%; text-align: left; padding: 14px 12px; border-radius: 10px; border: none; background: transparent; color: var(--text); font-weight: 700; cursor: pointer; }
+    .menu-button.active, .menu-button:hover { background: white; box-shadow: inset 0 0 0 1px var(--border); }
+    .content { padding: 32px; }
+    .panel { display: none; background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 26px; box-shadow: 0 10px 24px rgba(7,26,45,.05); }
+    .panel.active { display: block; }
+    .summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-bottom: 22px; }
+    .summary-box { background: #f8fbff; border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+    .summary-box strong { display: block; font-size: 1.7rem; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 15px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-size: .82rem; text-transform: uppercase; }
+    .status { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: .76rem; font-weight: 800; }
+    .status.unread { background: #eaf4ff; color: var(--blue); }
+    .status.replied { background: #eafaf1; color: var(--success); }
+    .status.pending { background: #fff4e5; color: var(--warning); }
+    .row-button { background: var(--blue); color: white; border: none; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+    .inbox-list { display: grid; gap: 14px; }
+    .message-card { border: 1px solid var(--border); border-radius: 14px; padding: 18px; background: #fff; }
+    .message-card.unread { border-color: #aad0ff; background: #f7fbff; }
+    .message-header { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .message-meta { color: var(--muted); font-size: .86rem; }
+    .reply-box { margin-top: 16px; display: none; }
+    .reply-box.show { display: block; }
+    .reply-box textarea { margin-bottom: 10px; }
+    .empty { color: var(--muted); padding: 22px 0; }
+
+    @media (max-width: 850px) {
+      .services-grid, .summary, .about-grid, .contact-grid, .workspace-body { grid-template-columns: 1fr; }
+      .hero { grid-template-columns: 1fr; padding-top: 60px; }
+      .topbar nav { display: none; }
+      .nav-toggle { display: block; background: transparent; border: none; color: white; font-size: 1.6rem; }
+      .workspace-header { flex-direction: column; align-items: flex-start; }
+      .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+    @media (max-width: 520px) {
+      section { padding: 60px 5%; }
+      .hero { padding: 50px 5% 40px; }
+      .content { padding: 18px; }
+      .auth-card { padding: 25px; }
+      .stat-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="landing" class="site-shell">
+    <header class="topbar">
+      <div class="brand">L T S <span>HOLDINGS</span></div>
+      <nav>
+        <a class="nav-link" href="#about">About</a>
+        <a class="nav-link" href="#services">Services</a>
+        <a class="nav-link" href="#contact">Contact</a>
+        <button class="btn btn-admin" data-login="admin">Admin Portal</button>
+      </nav>
+      <button class="nav-toggle" aria-label="Open menu">☰</button>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="auth-badge">BUILDING TRUST. DELIVERING VALUE.</p>
+          <h1>Stronger growth<br><span>for tomorrow.</span></h1>
+          <p>L T S HOLDINGS partners with businesses and clients to deliver reliable, innovative, and people-focused solutions.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" data-login="admin">Access Admin Portal</button>
+            <a class="btn btn-light" href="#contact">Speak to Our Team</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <h2>Why clients choose us</h2>
+          <div class="stat-grid">
+            <div class="stat"><strong>15+</strong><small>Years of experience</small></div>
+            <div class="stat"><strong>120+</strong><small>Projects delivered</small></div>
+            <div class="stat"><strong>98%</strong><small>Client satisfaction</small></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="about">
+        <h2 class="section-title">A company built around people and progress.</h2>
+        <p class="section-text">We combine strategic thinking, practical execution, and long-term partnership to help clients solve complex challenges.</p>
+        <div class="about-grid">
+          <div class="about-copy">
+            From strategic planning to service delivery, L T S HOLDINGS supports organisations with dependable expertise, honest communication, and measurable results.
+          </div>
+          <div class="info-card">
+            <h3>Our commitment</h3>
+            <p>We listen carefully, design practical solutions, and remain accountable throughout every stage of the relationship.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="services">
+        <h2 class="section-title">Our core services</h2>
+        <p class="section-text">Tailored solutions designed to strengthen operations, improve service, and create sustainable growth.</p>
+        <div class="services-grid">
+          <article class="service">
+            <div class="service-icon">◎</div>
+            <h3>Business Strategy</h3>
+            <p>Clear planning, market insight, and practical guidance that helps teams move from ideas to results.</p>
+          </article>
+          <article class="service">
+            <div class="service-icon">▣</div>
+            <h3>Operations Support</h3>
+            <p>Efficient processes, responsive service, and coordinated delivery that keep your organisation moving.</p>
+          </article>
+          <article class="service">
+            <div class="service-icon">✦</div>
+            <h3>Client Care</h3>
+            <p>Dedicated communication, transparent updates, and dependable support from your first enquiry onward.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="contact">
+        <h2 class="section-title">Contact L T S HOLDINGS</h2>
+        <p class="section-text">Tell us about your needs and our team will respond as quickly as possible.</p>
+        <div class="contact-grid">
+          <div class="contact-details">
+            <div><strong>Office</strong><a href="tel:+270182642034">018 264 2034</a></div>
+            <div><strong>Cell</strong><a href="tel:+27074749814">074 749 814</a></div>
+            <div><strong>Email</strong><a href="mailto:setlhodilesego2@gmail.com">setlhodilesego2@gmail.com</a></div>
+            <div><strong>CSD</strong><span>MAAA1448052</span></div>
+            <div><strong>Reg No</strong><span>2021/735537/07</span></div>
+          </div>
+          <form class="contact-form" id="contactForm">
+            <div hidden><label>Leave this field empty: <input name="bot-field"></label></div>
+            <div class="field"><label for="name">Full name</label><input id="name" name="name" required></div>
+            <div class="field"><label for="email">Email address</label><input id="email" type="email" name="email" required></div>
+            <div class="field"><label for="subject">Subject</label><input id="subject" name="subject" required></div>
+            <div class="field"><label for="message">Your message</label><textarea id="message" name="message" required></textarea></div>
+            <button class="btn btn-primary" type="submit">Send message</button>
+            <div id="contactMessage" class="message" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="loginScreen" class="login-screen">
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <span class="auth-badge">L T S HOLDINGS</span>
+        <h2 id="loginTitle">Admin Portal</h2>
+        <p id="loginDescription">Sign in to review and manage website enquiries.</p>
+        <form id="loginForm" class="auth-form">
+          <div class="field">
+            <label for="loginEmail">Email address</label>
+            <input id="loginEmail" type="email" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" autocomplete="current-password" required>
+          </div>
+          <button class="btn btn-primary" type="submit">Login</button>
+          <div id="loginMessage" class="message" aria-live="polite"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="appScreen" class="app-screen">
+    <div class="workspace">
+      <header class="workspace-header">
+        <div class="brand">L T S <span>HOLDINGS</span></div>
+        <div class="account">
+          <div class="avatar" id="accountAvatar">A</div>
+          <div><strong id="accountName">Admin</strong><br><small id="accountRole">Administrator</small></div>
+          <button id="logoutBtn" class="btn btn-light" type="button">Logout</button>
+        </div>
+      </header>
+      <div class="workspace-body">
+        <aside class="sidebar">
+          <h3>Navigation</h3>
+          <button class="menu-button active" data-view="dashboard">Dashboard</button>
+          <button class="menu-button" data-view="inbox">Inbox</button>
+        </aside>
+        <main class="content">
+          <section id="dashboardView" class="panel active">
+            <h2>Dashboard</h2>
+            <div class="summary">
+              <div class="summary-box"><small>Total enquiries</small><strong id="totalEnquiries">0</strong></div>
+              <div class="summary-box"><small>Needs follow-up</small><strong id="newCount">0</strong></div>
+              <div class="summary-box"><small>In progress</small><strong id="progressCount">0</strong></div>
+            </div>
+            <div class="info-card">
+              <h3>Welcome</h3>
+              <p id="dashboardMessage">Your inbox is ready.</p>
+            </div>
+          </section>
+
+          <section id="inboxView" class="panel">
+            <h2>Inbox</h2>
+            <div id="portalMessage" class="message" role="status" aria-live="polite"></div>
+            <div id="inboxList" class="inbox-list"></div>
+          </section>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://hvwrpxzbvjpicwvehwur.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_BLJ46Xww30pSb_N9N4cFvQ_nq5Sq_YF';
+    const isSupabaseConfigured = !SUPABASE_URL.includes('YOUR_PROJECT') && !SUPABASE_ANON_KEY.includes('YOUR_');
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const landing = document.getElementById('landing');
+    const loginScreen = document.getElementById('loginScreen');
+    const appScreen = document.getElementById('appScreen');
+    const loginForm = document.getElementById('loginForm');
+    const loginMessage = document.getElementById('loginMessage');
+    const accountName = document.getElementById('accountName');
+    const accountRole = document.getElementById('accountRole');
+    const accountAvatar = document.getElementById('accountAvatar');
+    const portalMessage = document.getElementById('portalMessage');
+    let enquiries = [];
+
+    function showScreen(screen) {
+      landing.style.display = screen === 'landing' ? 'block' : 'none';
+      loginScreen.classList.toggle('active', screen === 'login');
+      appScreen.classList.toggle('active', screen === 'app');
+    }
+
+    function setMessage(element, text, isError = false) {
+      element.textContent = text;
+      element.className = `message${isError ? ' error' : ''}`;
+    }
+
+    function renderStats() {
+      document.getElementById('totalEnquiries').textContent = enquiries.length;
+      document.getElementById('newCount').textContent = enquiries.filter(item => item.status === 'new').length;
+      document.getElementById('progressCount').textContent = enquiries.filter(item => item.status === 'in_progress').length;
+    }
+
+    function renderInbox() {
+      const list = document.getElementById('inboxList');
+      list.replaceChildren();
+      if (!enquiries.length) {
+        const empty = document.createElement('p');
+        empty.className = 'empty';
+        empty.textContent = 'No enquiries yet.';
+        list.append(empty);
+        return;
+      }
+
+      enquiries.forEach(item => {
+        const card = document.createElement('article');
+        card.className = 'message-card';
+        const header = document.createElement('div');
+        header.className = 'message-header';
+        const identity = document.createElement('div');
+        const sender = document.createElement('strong');
+        sender.textContent = item.name;
+        const subject = document.createElement('div');
+        subject.className = 'message-meta';
+        subject.textContent = item.subject;
+        identity.append(sender, subject);
+        const status = document.createElement('span');
+        status.className = `status ${item.status === 'new' ? 'unread' : item.status === 'completed' ? 'replied' : 'pending'}`;
+        status.textContent = item.status.replace('_', ' ');
+        header.append(identity, status);
+
+        const meta = document.createElement('p');
+        meta.className = 'message-meta';
+        const email = document.createElement('a');
+        email.href = `mailto:${item.email}`;
+        email.textContent = item.email;
+        const date = document.createElement('span');
+        date.textContent = ` · ${new Date(item.created_at).toLocaleString()}`;
+        meta.append(email, date);
+        const message = document.createElement('p');
+        message.textContent = item.message;
+
+        const actions = document.createElement('div');
+        actions.className = 'message-header';
+        const reply = document.createElement('a');
+        reply.className = 'row-button';
+        reply.href = `mailto:${encodeURIComponent(item.email)}?subject=${encodeURIComponent(`Re: ${item.subject}`)}`;
+        reply.textContent = 'Reply by email';
+        const statusSelect = document.createElement('select');
+        statusSelect.setAttribute('aria-label', `Status for ${item.name}`);
+        [['new', 'New'], ['in_progress', 'In progress'], ['completed', 'Completed']].forEach(([value, label]) => {
+          const option = document.createElement('option');
+          option.value = value;
+          option.textContent = label;
+          statusSelect.append(option);
+        });
+        statusSelect.value = item.status;
+        statusSelect.addEventListener('change', () => updateStatus(item.id, statusSelect.value));
+        actions.append(reply, statusSelect);
+        card.append(header, meta, message, actions);
+        list.append(card);
+      });
+    }
+
+    async function loadEnquiries() {
+      setMessage(portalMessage, 'Loading enquiries...');
+      const { data, error } = await supabaseClient.from('enquiries').select('*').order('created_at', { ascending: false });
+      if (error) {
+        setMessage(portalMessage, 'Could not load enquiries. Check the Supabase setup and database policies.', true);
+        return;
+      }
+      setMessage(portalMessage, '');
+      enquiries = data;
+      renderStats();
+      renderInbox();
+    }
+
+    async function updateStatus(id, status) {
+      const { error } = await supabaseClient.from('enquiries').update({ status }).eq('id', id);
+      if (error) {
+        setMessage(portalMessage, 'Could not update this enquiry status.', true);
+        return;
+      }
+      enquiries = enquiries.map(item => item.id === id ? { ...item, status } : item);
+      renderStats();
+      renderInbox();
+    }
+
+    async function openApp(user) {
+      const { data: isAdmin, error } = await supabaseClient.rpc('is_admin');
+      if (error || !isAdmin) {
+        await supabaseClient.auth.signOut();
+        showScreen('login');
+        setMessage(loginMessage, 'This account is not authorized for the admin portal.', true);
+        return;
+      }
+      const name = user.user_metadata?.full_name || user.email;
+      accountName.textContent = name;
+      accountRole.textContent = 'Administrator';
+      accountAvatar.textContent = name.charAt(0).toUpperCase();
+      showScreen('app');
+      await loadEnquiries();
+    }
+
+    document.querySelectorAll('[data-login="admin"]').forEach(button => {
+      button.addEventListener('click', () => {
+        setMessage(loginMessage, '');
+        showScreen('login');
+      });
+    });
+
+    loginForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!isSupabaseConfigured) {
+        setMessage(loginMessage, 'Admin portal setup is incomplete. Add your Supabase project URL and anon key to index.html.', true);
+        return;
+      }
+      setMessage(loginMessage, 'Signing in...');
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) {
+        setMessage(loginMessage, 'Sign-in failed. Check your email and password.', true);
+        return;
+      }
+      await openApp(data.user);
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await supabaseClient.auth.signOut();
+      loginForm.reset();
+      showScreen('landing');
+    });
+
+    document.getElementById('contactForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const data = new FormData(form);
+      if (data.get('bot-field')) return;
+      if (!isSupabaseConfigured) {
+        setMessage(document.getElementById('contactMessage'), 'This form is not connected yet. Please contact us by email or phone.', true);
+        return;
+      }
+      const button = form.querySelector('button[type="submit"]');
+      button.disabled = true;
+      setMessage(document.getElementById('contactMessage'), 'Sending...');
+      const { error } = await supabaseClient.from('enquiries').insert({
+        name: String(data.get('name')).trim(),
+        email: String(data.get('email')).trim(),
+        subject: String(data.get('subject')).trim(),
+        message: String(data.get('message')).trim()
+      });
+      button.disabled = false;
+      if (error) {
+        setMessage(document.getElementById('contactMessage'), 'We could not send your message. Please contact us by email or phone.', true);
+        return;
+      }
+      form.reset();
+      setMessage(document.getElementById('contactMessage'), 'Thank you. Your enquiry has been sent.');
+    });
+
+    document.querySelector('.nav-toggle').addEventListener('click', () => {
+      const nav = document.querySelector('.topbar nav');
+      nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
+      nav.style.position = 'absolute';
+      nav.style.top = '68px';
+      nav.style.right = '20px';
+      nav.style.background = '#071a2d';
+      nav.style.padding = '18px';
+      nav.style.borderRadius = '12px';
+      nav.style.flexDirection = 'column';
+    });
+
+    document.querySelectorAll('.menu-button').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.menu-button').forEach(item => item.classList.remove('active'));
+        button.classList.add('active');
+        document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+        document.getElementById(button.dataset.view + 'View').classList.add('active');
+      });
+    });
+
+    async function restoreAdminSession() {
+      if (!isSupabaseConfigured) return;
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) await openApp(session.user);
+    }
+    restoreAdminSession();
+  </script>
+</body>
+</html>
