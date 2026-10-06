@@ -51,4 +51,27 @@ create policy "Admins can update enquiries"
   on public.enquiries for update to authenticated
   using ((select public.is_admin()))
   with check ((select public.is_admin()));
+
+-- Website images are stored in a public Supabase Storage bucket named "website-images".
+-- Create the bucket in Supabase Storage before applying these policies.
+drop policy if exists "Public website images are visible" on storage.objects;
+create policy "Public website images are visible"
+  on storage.objects for select
+  using (bucket_id = 'website-images');
+
+drop policy if exists "Admins can upload website images" on storage.objects;
+create policy "Admins can upload website images"
+  on storage.objects for insert to authenticated
+  with check (
+    bucket_id = 'website-images'
+    and (select public.is_admin())
+  );
+
+drop policy if exists "Admins can delete website images" on storage.objects;
+create policy "Admins can delete website images"
+  on storage.objects for delete to authenticated
+  using (
+    bucket_id = 'website-images'
+    and (select public.is_admin())
+  );
   

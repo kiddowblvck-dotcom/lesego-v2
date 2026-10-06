@@ -130,6 +130,15 @@
     .summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-bottom: 22px; }
     .summary-box { background: #f8fbff; border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
     .summary-box strong { display: block; font-size: 1.7rem; }
+    .image-upload-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; margin: 18px 0 24px; }
+    .image-upload-form input[type="file"] { padding: 11px; }
+    .image-upload-form button { min-width: 130px; }
+    .image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+    .image-card { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: #fff; }
+    .image-card img { display: block; width: 100%; height: 180px; object-fit: cover; }
+    .image-card-body { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px; }
+    .image-card-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .icon-button { border: none; border-radius: 8px; background: #b42318; color: white; padding: 8px 10px; cursor: pointer; }
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; }
     th, td { text-align: left; padding: 15px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
@@ -193,7 +202,7 @@
         <div class="hero-card">
           <h2>Why clients choose us</h2>
           <div class="stat-grid">
-            <div class="stat"><strong>15+</strong><small>Years of experience</small></div>
+            <div class="stat"><strong>6+</strong><small>Years of experience</small></div>
             <div class="stat"><strong>120+</strong><small>Projects delivered</small></div>
             <div class="stat"><strong>98%</strong><small>Client satisfaction</small></div>
           </div>
@@ -297,6 +306,7 @@
         <aside class="sidebar">
           <h3>Navigation</h3>
           <button class="menu-button active" data-view="dashboard">Dashboard</button>
+          <button class="menu-button" data-view="images">Website images</button>
           <button class="menu-button" data-view="inbox">Inbox</button>
         </aside>
         <main class="content">
@@ -311,6 +321,20 @@
               <h3>Welcome</h3>
               <p id="dashboardMessage">Your inbox is ready.</p>
             </div>
+          </section>
+
+          <section id="imagesView" class="panel">
+            <h2>Website images</h2>
+            <p class="section-text">Upload images to the public website gallery. Only authorized administrators can add or remove files.</p>
+            <form id="imageUploadForm" class="image-upload-form">
+              <div class="field">
+                <label for="imageFile">Choose an image</label>
+                <input id="imageFile" name="imageFile" type="file" accept="image/*" required>
+              </div>
+              <button class="btn btn-primary" type="submit">Upload image</button>
+            </form>
+            <div id="imageUploadMessage" class="message" role="status" aria-live="polite"></div>
+            <div id="imageGrid" class="image-grid"></div>
           </section>
 
           <section id="inboxView" class="panel">
@@ -455,7 +479,66 @@
       accountRole.textContent = 'Administrator';
       accountAvatar.textContent = name.charAt(0).toUpperCase();
       showScreen('app');
-      await loadEnquiries();
+      await Promise.all([loadEnquiries(), loadWebsiteImages()]);
+    }
+
+    function getWebsiteImageName(path) {
+      return path.split('/').pop() || 'Image';
+    }
+
+    async function loadWebsiteImages() {
+      const imageGrid = document.getElementById('imageGrid');
+      imageGrid.replaceChildren();
+      const { data, error } = await supabaseClient.storage.from('website-images').list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
+      if (error) {
+        imageGrid.innerHTML = '<p class="empty">Could not load website images.</p>';
+        return;
+      }
+      if (!data.length) {
+        imageGrid.innerHTML = '<p class="empty">No images uploaded yet.</p>';
+        return;
+      }
+
+      data.forEach(file => {
+        const { publicUrl } = supabaseClient.storage.from('website-images').getPublicUrl(file.name);
+        const card = document.createElement('article');
+        card.className = 'image-card';
+        const image = document.createElement('img');
+        image.src = publicUrl;
+        image.alt = file.name;
+        image.loading = 'lazy';
+        const body = document.createElement('div');
+        body.className = 'image-card-body';
+        const name = document.createElement('span');
+        name.className = 'image-card-name';
+        name.textContent = getWebsiteImageName(file.name);
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'icon-button';
+        deleteButton.textContent = 'Delete';
+        deleteButton.title = `Delete ${file.name}`;
+        deleteButton.addEventListener('click', () => deleteWebsiteImage(file.name));
+        body.append(name, deleteButton);
+        card.append(image, body);
+        imageGrid.append(card);
+      });
+    }
+
+    async function uploadWebsiteImage(file) {
+      const extension = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')) : '';
+      const safeName = `${Date.now()}-${Math.random().toString(16).slice(2)}${extension}`;
+      const { error } = await supabaseClient.storage.from('website-images').upload(safeName, file, { cacheControl: '3600', upsert: false });
+      if (error) throw error;
+    }
+
+    async function deleteWebsiteImage(name) {
+      const { error } = await supabaseClient.storage.from('website-images').remove([name]);
+      if (error) {
+        setMessage(document.getElementById('imageUploadMessage'), 'Could not delete the image.', true);
+        return;
+      }
+      await loadWebsiteImages();
+      setMessage(document.getElementById('imageUploadMessage'), 'Image deleted.');
     }
 
     document.querySelectorAll('[data-login="admin"]').forEach(button => {
@@ -513,6 +596,30 @@
       }
       form.reset();
       setMessage(document.getElementById('contactMessage'), 'Thank you. Your enquiry has been sent.');
+    });
+
+    document.getElementById('imageUploadForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const fileInput = document.getElementById('imageFile');
+      const file = fileInput.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        setMessage(document.getElementById('imageUploadMessage'), 'Please choose an image file.', true);
+        return;
+      }
+      const button = event.currentTarget.querySelector('button[type="submit"]');
+      button.disabled = true;
+      setMessage(document.getElementById('imageUploadMessage'), 'Uploading image...');
+      try {
+        await uploadWebsiteImage(file);
+        fileInput.value = '';
+        await loadWebsiteImages();
+        setMessage(document.getElementById('imageUploadMessage'), 'Image uploaded successfully.');
+      } catch (error) {
+        setMessage(document.getElementById('imageUploadMessage'), 'Could not upload the image. Check the storage bucket setup.', true);
+      } finally {
+        button.disabled = false;
+      }
     });
 
     document.querySelector('.nav-toggle').addEventListener('click', () => {
